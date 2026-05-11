@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CVS — First-Time Setup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: #0f1629;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1e2d4a;
+      border: 1px solid #2d4a8a40;
+      border-radius: 14px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .logo-wrap { text-align: center; margin-bottom: 28px; }
+    .logo-badge {
+      background: #f0e040; color: #1a2744;
+      font-weight: 900; font-size: 28px;
+      width: 64px; height: 64px; border-radius: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+    }
+    h1 { font-size: 20px; font-weight: 800; }
+    .subtitle { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+    .warning-box {
+      background: #f59e0b15; border: 1px solid #f59e0b40;
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 13px; color: #f59e0b;
+      margin-bottom: 24px; line-height: 1.5;
+    }
+    .step-box {
+      background: #0f1629; border: 1px solid #2d4a8a40;
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 13px; color: #94a3b8;
+      margin-bottom: 24px; line-height: 1.5;
+    }
+    .step-box strong { color: #e2e8f0; }
+    label {
+      display: block; font-size: 12px; font-weight: 700;
+      color: #94a3b8; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 16px;
+    }
+    input {
+      width: 100%; background: #0f1629; border: 1px solid #2d4a8a40;
+      border-radius: 8px; color: #e2e8f0; font-family: inherit;
+      font-size: 14px; padding: 10px 12px; outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px #2563eb25; }
+    input::placeholder { color: #64748b; }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 24px;
+      background: #2563eb; color: #fff;
+      border: none; border-radius: 8px; padding: 12px;
+      font-family: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn:hover:not(:disabled) { background: #1d4ed8; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .msg {
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 13px; margin-top: 16px; display: none; line-height: 1.5;
+    }
+    .msg.success { background: #22c55e15; border: 1px solid #22c55e40; color: #22c55e; }
+    .msg.error   { background: #ef444415; border: 1px solid #ef444440; color: #ef4444; }
+    .msg.show { display: block; }
+    .goto {
+      display: block; text-align: center; margin-top: 16px;
+      color: #2563eb; font-size: 14px; text-decoration: none; font-weight: 600;
+    }
+    .goto:hover { text-decoration: underline; }
+    .divider { border: none; border-top: 1px solid #2d4a8a40; margin: 20px 0; }
+    .already-setup {
+      text-align: center; padding: 20px 0;
+    }
+    .already-setup .icon { font-size: 48px; margin-bottom: 12px; }
+    .already-setup p { color: #94a3b8; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="card" id="setup-card">
+  <div class="logo-wrap">
+    <div class="logo-badge">CVS</div>
+    <h1>First-Time Setup</h1>
+    <p class="subtitle">สร้างบัญชี Admin คนแรกของระบบ</p>
+  </div>
+
+  <!-- Will show spinner while checking -->
+  <div id="checking" style="text-align:center;color:#94a3b8;padding:20px 0;">
+    กำลังตรวจสอบ...
+  </div>
+
+  <!-- Main setup form (hidden until check passes) -->
+  <div id="setup-form" style="display:none;">
+    <div class="warning-box">
+      ⚠️ หน้านี้ใช้สำหรับตั้งค่าครั้งแรกเท่านั้น<br>
+      <strong>หลังจากสร้าง Admin เสร็จแล้ว ให้ลบไฟล์ bootstrap.html ออกจาก repository ทันที</strong>
+    </div>
+
+    <div class="step-box">
+      <strong>ขั้นตอน:</strong><br>
+      1. กรอกรหัสพนักงาน Admin คนแรก (เช่น MTL00001)<br>
+      2. กรอกชื่อ-นามสกุล<br>
+      3. กรอกรหัสผ่านอย่างน้อย 6 ตัวอักษร<br>
+      4. กด "สร้าง Admin Account"
+    </div>
+
+    <label>รหัสพนักงาน (Employee ID)</label>
+    <input type="text" id="emp-id" placeholder="เช่น MTL00001" style="text-transform:uppercase;" />
+
+    <label>ชื่อ-นามสกุล (Full Name)</label>
+    <input type="text" id="full-name" placeholder="เช่น สมชาย มานะ" />
+
+    <label>แผนก (Department)</label>
+    <input type="text" id="dept" placeholder="เช่น QA / ฝ่ายผลิต" />
+
+    <label>รหัสผ่าน (Password)</label>
+    <input type="password" id="password" placeholder="อย่างน้อย 6 ตัวอักษร" />
+
+    <label>ยืนยันรหัสผ่าน (Confirm Password)</label>
+    <input type="password" id="confirm-pw" placeholder="กรอกรหัสผ่านอีกครั้ง" />
+
+    <button class="btn" id="create-btn" onclick="createAdmin()">
+      🔐 สร้าง Admin Account
+    </button>
+
+    <div class="msg" id="result-msg"></div>
+    <a class="goto hidden" id="goto-app" href="index.html">→ ไปยังหน้า Login</a>
+  </div>
+
+  <!-- Show when admin already exists -->
+  <div id="already-done" style="display:none;">
+    <hr class="divider" />
+    <div class="already-setup">
+      <div class="icon">✅</div>
+      <p>ระบบมีบัญชี Admin อยู่แล้ว<br>ไม่สามารถใช้หน้านี้ได้อีก</p>
+    </div>
+    <a class="goto" href="index.html">→ ไปยังหน้า Login</a>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, query, where, getDocs, doc, setDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { firebaseConfig, EMAIL_DOMAIN } from "./js/config.js";
+
+  const app  = initializeApp(firebaseConfig, "bootstrap");
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // ── Check if any admin already exists ────────────────────
+  async function checkExistingAdmin() {
+    try {
+      const snap = await getDocs(query(collection(db, "users"), where("role", "==", "admin")));
+      if (!snap.empty) {
+        document.getElementById("checking").style.display = "none";
+        document.getElementById("already-done").style.display = "block";
+      } else {
+        document.getElementById("checking").style.display = "none";
+        document.getElementById("setup-form").style.display = "block";
+      }
+    } catch {
+      // Firestore unreadable without auth — show form anyway (rules will protect)
+      document.getElementById("checking").style.display = "none";
+      document.getElementById("setup-form").style.display = "block";
+    }
+  }
+
+  checkExistingAdmin();
+
+  // ── Create admin ──────────────────────────────────────────
+  window.createAdmin = async function() {
+    const empId   = document.getElementById("emp-id").value.trim().toUpperCase();
+    const name    = document.getElementById("full-name").value.trim();
+    const dept    = document.getElementById("dept").value.trim();
+    const pw      = document.getElementById("password").value;
+    const confirm = document.getElementById("confirm-pw").value;
+    const btn     = document.getElementById("create-btn");
+    const msg     = document.getElementById("result-msg");
+
+    msg.className = "msg"; msg.textContent = ""; msg.classList.remove("show");
+
+    if (!empId || !name || !pw) {
+      return showMsg("กรุณากรอกข้อมูลให้ครบถ้วน", "error");
+    }
+    if (pw.length < 6) {
+      return showMsg("รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร", "error");
+    }
+    if (pw !== confirm) {
+      return showMsg("รหัสผ่านไม่ตรงกัน", "error");
+    }
+
+    btn.disabled = true;
+    btn.textContent = "⏳ กำลังสร้างบัญชี...";
+
+    try {
+      const email = `${empId}${EMAIL_DOMAIN}`;
+      const cred  = await createUserWithEmailAndPassword(auth, email, pw);
+      const uid   = cred.user.uid;
+
+      await setDoc(doc(db, "users", uid), {
+        employeeId: empId,
+        name,
+        dept,
+        role: "admin",
+        status: "active",
+        createdAt: serverTimestamp(),
+      });
+
+      await signOut(auth);
+
+      showMsg(
+        `✅ สร้างบัญชี Admin เรียบร้อย!\n\nรหัสพนักงาน: ${empId}\n\n` +
+        `⚠️ กรุณาลบไฟล์ bootstrap.html ออกจาก repository ก่อน deploy จริง`,
+        "success"
+      );
+      btn.textContent = "✅ สร้างเรียบร้อย";
+      document.getElementById("goto-app").classList.remove("hidden");
+
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = "🔐 สร้าง Admin Account";
+      const errMap = {
+        "auth/email-already-in-use": `รหัสพนักงาน ${empId} มีในระบบแล้ว`,
+        "auth/weak-password": "รหัสผ่านอ่อนเกินไป",
+        "auth/invalid-email": "รูปแบบรหัสพนักงานไม่ถูกต้อง",
+      };
+      showMsg(errMap[err.code] || err.message, "error");
+    }
+  };
+
+  function showMsg(text, type) {
+    const el = document.getElementById("result-msg");
+    el.textContent = text;
+    el.className = `msg ${type} show`;
+  }
+</script>
+
+</body>
+</html>
