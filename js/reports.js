@@ -1,13 +1,13 @@
 // M7 — Reports & Certificate Export
 import { db } from "./config.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { t } from "./i18n.js";
 
 let allResults = [], allTools = [], allCycles = [], allUsers = [];
 let filtered = [];
 
 export async function init() {
-  window.CVS_Reports = { applyFilter, toggleAll, exportSelected, print: printReport, exportSingle };
+  window.CVS_Reports = { applyFilter, toggleAll, exportSelected, print: printReport, exportSingle, deleteResult };
 
   const [rs, ts, cs, us] = await Promise.all([
     getDocs(collection(db, "testResults")),
@@ -90,7 +90,12 @@ function renderTable() {
       <td>${r.testDate||"-"}</td>
       <td class="text-center">${r.tolerance||"-"}%</td>
       <td><span class="badge ${cls}">${lbl}</span></td>
-      <td><button class="btn btn-ghost btn-sm" onclick="window.CVS_Reports.exportSingle('${r.id}')">📄 PDF</button></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="window.CVS_Reports.exportSingle('${r.id}')">📄 PDF</button>
+        ${window.CVS?.role === "admin"
+          ? `<button class="btn btn-danger btn-sm" onclick="window.CVS_Reports.deleteResult('${r.id}','${(r.certNo||"-").replace(/'/g,"\\'")}')">🗑️</button>`
+          : ""}
+      </td>
     </tr>`;
   }).join("");
 }
@@ -300,6 +305,20 @@ function printReport() {
     </table>`;
 
   window.print();
+}
+
+async function deleteResult(id, certNo) {
+  if (!confirm(`ลบรายงาน "${certNo}" ใช่หรือไม่?\nข้อมูลจะถูกลบถาวร`)) return;
+  try {
+    await deleteDoc(doc(db, "testResults", id));
+    showToast("ลบรายงานเรียบร้อย", "success");
+    allResults = allResults.filter(r => r.id !== id);
+    filtered   = filtered.filter(r => r.id !== id);
+    renderTable();
+    updateStats();
+  } catch (err) {
+    showToast(err.message || t("errSave"), "error");
+  }
 }
 
 function setText(id, v) { const e = document.getElementById(id); if(e) e.textContent = v; }
