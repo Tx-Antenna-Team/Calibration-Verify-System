@@ -51,7 +51,12 @@ service cloud.firestore {
     match /cycles/{cycleId} {
       allow read:   if isActiveUser();
       allow create: if isAdmin();
-      allow update: if isAdmin();
+      allow update: if isAdmin()
+        // Technician can only flip status planned→in_progress (no other fields)
+        || (isTechnician()
+            && resource.data.status == "planned"
+            && request.resource.data.status == "in_progress"
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]));
       allow delete: if isAdmin();
     }
 
