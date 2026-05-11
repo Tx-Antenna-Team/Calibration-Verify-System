@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isSignedIn() && userDoc().role == role;
+    }
+
+    function isActive() {
+      return isSignedIn() && userDoc().status == "active";
+    }
+
+    function isAdmin()      { return isActive() && userDoc().role == "admin"; }
+    function isSupervisor() { return isActive() && userDoc().role == "supervisor"; }
+    function isTechnician() { return isActive() && userDoc().role == "technician"; }
+
+    // Any authenticated + active user can read their own profile
+    function isOwner(uid) { return request.auth.uid == uid; }
+
+    // ── /users ───────────────────────────────────────────────
+    match /users/{uid} {
+      // Any active user can read user documents (needed for name lookups)
+      allow read: if isActive();
+      // Only admin can create / update user documents
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ── /tools ───────────────────────────────────────────────
+    match /tools/{toolId} {
+      allow read: if isActive();
+      // Admin: full write; Approval flow also updates tool dates on approve (via admin role)
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── /cycles ──────────────────────────────────────────────
+    match /cycles/{cycleId} {
+      allow read: if isActive();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── /testResults ─────────────────────────────────────────
+    match /testResults/{resultId} {
+      allow read: if isActive();
+
+      // Technician (or admin) can create new results
+      allow create: if isActive() && (isTechnician() || isAdmin());
+
+      // Update rules per status transition
+      allow update: if isActive() && (
+        // Technician can update their own rejected result (resubmit)
+        (
+          (isTechnician() || isAdmin()) &&
+          resource.data.technicianId == request.auth.uid &&
+          resource.data.status == "rejected"
+        ) ||
+        // Supervisor can move pending_supervisor → pending_admin or rejected
+        (
+          (isSupervisor() || isAdmin()) &&
+          resource.data.status == "pending_supervisor"
+        ) ||
+        // Admin can move pending_admin → approved or rejected, and update tool dates
+        (
+          isAdmin() &&
+          resource.data.status == "pending_admin"
+        )
+      );
+
+      allow delete: if isAdmin();
+    }
+  }
+}

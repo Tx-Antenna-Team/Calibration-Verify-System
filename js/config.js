@@ -5,7 +5,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey:            "AIzaSyAjxNAgHLp3y0xJq2z1P_4sUNcxrAvMRVk",
   authDomain:        "calibration-verify-system.firebaseapp.com",
   projectId:         "calibration-verify-system",

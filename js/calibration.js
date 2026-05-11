@@ -170,7 +170,8 @@ async function submit() {
     points.push({ ref, measured: meas, error: err, pctError: pctErr, pass });
   }
 
-  const certNo = `CERT-${selectedTool.code || selectedTool.id}-${date.replace(/-/g,"")}`;
+  const certSuffix = Date.now().toString(36).toUpperCase().slice(-5);
+  const certNo = `CERT-${(selectedTool.code || selectedTool.id).toUpperCase()}-${date.replace(/-/g,"")}-${certSuffix}`;
   const data = {
     cycleId: selectedCycle.id, toolId: selectedTool.id,
     technicianId: window.CVS?.uid, testDate: date,

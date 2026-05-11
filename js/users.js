@@ -1,8 +1,13 @@
 // M2 — User Management
-import { auth, db, toEmail } from "./config.js";
-import { createUserWithEmailAndPassword, updatePassword, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { auth, db, toEmail, firebaseConfig } from "./config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, getDocs, doc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { t } from "./i18n.js";
+
+// Secondary app so creating a user doesn't sign out the current admin session
+const _secondaryApp  = initializeApp(firebaseConfig, "cvs-admin-helper");
+const _secondaryAuth = getAuth(_secondaryApp);
 
 let allUsers = [];
 let editingUid = null;
@@ -112,7 +117,9 @@ async function save() {
         showToast(t("errRequired") + " (รหัสพนักงาน + รหัสผ่าน ≥6 ตัว)", "warning"); return;
       }
       const email = toEmail(empId);
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      // Use secondary auth so admin session is NOT interrupted
+      const cred = await createUserWithEmailAndPassword(_secondaryAuth, email, password);
+      await _secondaryAuth.signOut();
       await setDoc(doc(db, "users", cred.user.uid), {
         employeeId: empId, name, dept, role, status: "active", createdAt: serverTimestamp()
       });
