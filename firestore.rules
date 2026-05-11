@@ -23,18 +23,8 @@ service cloud.firestore {
 
     // ── /users ───────────────────────────────────────────────
     match /users/{uid} {
-      allow read: if isActiveUser();
-
-      // ⚠️ BOOTSTRAP RULE — allows the very first user to create their own admin document.
-      // Condition: authenticated + writing to their own UID + no Firestore document yet.
-      // ➜ Remove the second allow create line after initial admin setup is complete.
+      allow read:   if isActiveUser();
       allow create: if isAdmin();
-      allow create: if isAuth()
-                    && request.auth.uid == uid
-                    && !exists(/databases/$(database)/documents/users/$(request.auth.uid))
-                    && request.resource.data.role == "admin"
-                    && request.resource.data.status == "active";
-
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }

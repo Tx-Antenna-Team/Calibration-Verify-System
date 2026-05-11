@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    // GitHub Pages SPA redirect — forward any 404 back to index.html
+    // preserving the hash so the router can handle it
+    const hash = window.location.hash || "";
+    window.location.replace("/" + (window.location.pathname.split("/")[1] || "") + "/index.html" + hash);
+  </script>
+</head>
+<body></body>
+</html>
