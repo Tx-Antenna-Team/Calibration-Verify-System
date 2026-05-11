@@ -47,7 +47,7 @@ function renderTable() {
   const userMap = {};
   allUsers.forEach(u => userMap[u.id] = u);
   const toolMap = {};
-  allTools.forEach(t => toolMap[t.id] = t);
+  allTools.forEach(tool => toolMap[tool.id] = tool);
 
   if (allCycles.length === 0) {
     tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">${t("noData")}</td></tr>`;
