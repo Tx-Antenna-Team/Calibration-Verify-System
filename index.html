@@ -334,6 +334,13 @@
   // ── Helpers ──
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
 
+  // Open calendar picker on click for all date inputs (prevents accidental typing)
+  document.addEventListener("click", e => {
+    if (e.target.matches("input[type='date']") && !e.target.readOnly) {
+      try { e.target.showPicker(); } catch { /* not supported in all browsers */ }
+    }
+  });
+
   // Initial language apply
   applyLanguage();
 </script>

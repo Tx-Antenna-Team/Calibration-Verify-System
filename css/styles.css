@@ -439,6 +439,18 @@ html, body {
 
 select.form-control { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
 
+input[type="date"].form-control { cursor: pointer; }
+input[type="date"].form-control::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
+  filter: invert(1);
+  background: var(--primary);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
