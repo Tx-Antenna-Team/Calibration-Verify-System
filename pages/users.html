@@ -1,0 +1,137 @@
+<div class="page-header">
+  <div>
+    <div class="page-title" data-i18n="userTitle">จัดการผู้ใช้</div>
+    <div class="page-subtitle" data-i18n="userSubtitle">สร้าง แก้ไข และกำหนดบทบาทผู้ใช้</div>
+  </div>
+  <button class="btn btn-primary" onclick="window.CVS_Users.openCreate()">
+    <span data-i18n="userAddBtn">+ เพิ่มผู้ใช้</span>
+  </button>
+</div>
+
+<div class="page-body">
+
+  <!-- Permission Matrix -->
+  <div class="card mb-16">
+    <div class="card-header">
+      <span class="card-title" data-i18n="permMatrix">ตาราง Permission</span>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th data-i18n="navUsers">จัดการผู้ใช้</th>
+            <th data-i18n="navTools">เครื่องมือ</th>
+            <th data-i18n="navCycles">รอบการทดสอบ</th>
+            <th data-i18n="navCalibration">สอบเทียบ</th>
+            <th data-i18n="navApproval">อนุมัติ</th>
+            <th data-i18n="navReports">รายงาน</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-primary" data-i18n="roleAdmin">Admin</span></td>
+            <td>Full</td><td>Full</td><td>Full</td><td>Full</td>
+            <td>Final</td><td>Full</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-success" data-i18n="roleSupervisor">Supervisor</span></td>
+            <td>—</td><td>View</td><td>View</td><td>View</td>
+            <td>Approve</td><td>View</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-info" data-i18n="roleQA">QA</span></td>
+            <td>—</td><td>View</td><td>View</td><td>View</td>
+            <td>—</td><td>View</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-warning" data-i18n="roleTechnician">Technician</span></td>
+            <td>—</td><td>View</td><td>View</td><td>Record</td>
+            <td>—</td><td>View</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-muted" data-i18n="roleViewer">Viewer</span></td>
+            <td>—</td><td>View</td><td>View</td><td>—</td>
+            <td>—</td><td>View</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- User List -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">👥 <span data-i18n="userTitle">จัดการผู้ใช้</span></span>
+      <input class="form-control" style="max-width:240px;" type="search"
+             data-i18n-placeholder="reportSearch" placeholder="ค้นหา..."
+             oninput="window.CVS_Users.search(this.value)" />
+    </div>
+    <div class="table-wrapper">
+      <table id="user-table">
+        <thead>
+          <tr>
+            <th data-i18n="userEmpId">รหัสพนักงาน</th>
+            <th data-i18n="userName">ชื่อ-นามสกุล</th>
+            <th data-i18n="userDept">แผนก</th>
+            <th data-i18n="userRole">บทบาท</th>
+            <th data-i18n="userStatus">สถานะ</th>
+            <th data-i18n="actions">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="user-tbody">
+          <tr><td colspan="6" class="text-center text-muted" data-i18n="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create/Edit User -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="user-modal-title" data-i18n="userCreateTitle">เพิ่มผู้ใช้ใหม่</span>
+      <button class="modal-close" onclick="window.CVS_Users.closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="user-uid" />
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="userEmpId">รหัสพนักงาน</label>
+          <input type="text" id="user-empid" class="form-control" placeholder="MTL12345"
+                 style="text-transform:uppercase;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="userName">ชื่อ-นามสกุล</label>
+          <input type="text" id="user-name" class="form-control" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="userDept">แผนก</label>
+          <input type="text" id="user-dept" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="userRole">บทบาท</label>
+          <select id="user-role" class="form-control">
+            <option value="admin">Admin — ผู้ดูแลระบบ</option>
+            <option value="supervisor">Supervisor — หัวหน้างาน</option>
+            <option value="qa">QA</option>
+            <option value="technician">Technician — ช่างเทคนิค</option>
+            <option value="viewer">Viewer — ผู้ชม</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="userPassword">รหัสผ่าน</label>
+        <input type="password" id="user-password" class="form-control" />
+        <div class="form-text" id="user-pw-hint" data-i18n="userPasswordMin">อย่างน้อย 6 ตัวอักษร</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="window.CVS_Users.closeModal()" data-i18n="cancel">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="window.CVS_Users.save()" data-i18n="save">บันทึก</button>
+    </div>
+  </div>
+</div>

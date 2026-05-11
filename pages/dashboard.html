@@ -1,0 +1,52 @@
+<div class="page-header">
+  <div>
+    <div class="page-title" data-i18n="dashTitle">แดชบอร์ด</div>
+    <div class="page-subtitle" data-i18n="dashSubtitle">ภาพรวมระบบสอบเทียบ</div>
+  </div>
+</div>
+<div class="page-body">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon blue">🔧</div>
+      <div><div class="kpi-value" id="kpi-total">-</div><div class="kpi-label" data-i18n="dashTotalTools">เครื่องมือทั้งหมด</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon red">⚠️</div>
+      <div><div class="kpi-value" id="kpi-overdue">-</div><div class="kpi-label" data-i18n="dashOverdue">เกินกำหนด</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon amber">🕐</div>
+      <div><div class="kpi-value" id="kpi-duesoon">-</div><div class="kpi-label" data-i18n="dashDueSoon">ใกล้ครบกำหนด</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon blue">📋</div>
+      <div><div class="kpi-value" id="kpi-pending">-</div><div class="kpi-label" data-i18n="dashPendingApproval">รออนุมัติ</div></div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+    <!-- Overdue tools -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🔴 เครื่องมือเกินกำหนด / Due Soon</span>
+      </div>
+      <div id="overdue-list">
+        <div class="empty-state"><div class="empty-icon">✅</div><p>ไม่มีเครื่องมือที่เกินกำหนด</p></div>
+      </div>
+    </div>
+
+    <!-- Pending approvals -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 รออนุมัติ</span>
+      </div>
+      <div id="pending-list">
+        <div class="empty-state"><div class="empty-icon">✅</div><p>ไม่มีรายการรออนุมัติ</p></div>
+      </div>
+    </div>
+
+  </div>
+</div>

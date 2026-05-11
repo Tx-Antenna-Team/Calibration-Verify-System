@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CVS — Calibration Verification System</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ══════════════ LOGIN PAGE (shown before auth) ══════════════ -->
+<div id="login-page" class="hidden">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-badge">CVS</div>
+      <h1 data-i18n="appFull">Calibration Verification System</h1>
+      <p data-i18n="loginSubtitle">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
+    </div>
+
+    <div id="login-error" class="login-error"></div>
+
+    <form id="login-form" autocomplete="off">
+      <div class="form-group">
+        <label class="form-label" data-i18n="loginEmpId">รหัสพนักงาน</label>
+        <input type="text" id="login-empid" class="form-control"
+               data-i18n-placeholder="loginEmpIdPlaceholder"
+               placeholder="เช่น MTL12345"
+               autocomplete="username" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="loginPassword">รหัสผ่าน</label>
+        <input type="password" id="login-password" class="form-control"
+               data-i18n-placeholder="loginPasswordPlaceholder"
+               placeholder="รหัสผ่าน"
+               autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;" id="login-btn">
+        <span data-i18n="loginBtn">เข้าสู่ระบบ</span>
+      </button>
+    </form>
+
+    <div style="text-align:center; margin-top:16px;">
+      <button class="btn-icon-sm lang-toggle" id="login-lang-btn" onclick="window._toggleLang()" style="width:auto; padding:6px 14px;">TH / EN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ APP SHELL (shown after auth) ══════════════ -->
+<div id="app-shell" class="hidden">
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">CVS</div>
+      <div class="sidebar-title">
+        <div class="app-name" data-i18n="appName">CVS</div>
+        <div class="app-sub" data-i18n="appFull">Calibration Verification System</div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav id="sidebar-nav">
+      <div class="nav-section-label" data-i18n="navSectionMain">หลัก</div>
+
+      <a class="nav-item" data-route="#dashboard" href="#dashboard">
+        <span class="nav-icon">🏠</span>
+        <span data-i18n="navDashboard">แดชบอร์ด</span>
+      </a>
+
+      <div class="nav-section-label" data-i18n="navSectionMgmt">บริหารจัดการ</div>
+
+      <a class="nav-item nav-admin-only" data-route="#users" href="#users">
+        <span class="nav-icon">👥</span>
+        <span data-i18n="navUsers">จัดการผู้ใช้</span>
+      </a>
+
+      <a class="nav-item" data-route="#tools" href="#tools">
+        <span class="nav-icon">🔧</span>
+        <span data-i18n="navTools">ลงทะเบียนเครื่องมือ</span>
+      </a>
+
+      <a class="nav-item" data-route="#cycles" href="#cycles">
+        <span class="nav-icon">📋</span>
+        <span data-i18n="navCycles">รอบการทดสอบ</span>
+      </a>
+
+      <a class="nav-item nav-tech-only" data-route="#calibration" href="#calibration">
+        <span class="nav-icon">📏</span>
+        <span data-i18n="navCalibration">บันทึกผลสอบเทียบ</span>
+      </a>
+
+      <a class="nav-item nav-approval-only" data-route="#approval" href="#approval">
+        <span class="nav-icon">✅</span>
+        <span data-i18n="navApproval">อนุมัติผล</span>
+        <span class="nav-badge hidden" id="approval-badge">0</span>
+      </a>
+
+      <a class="nav-item" data-route="#reports" href="#reports">
+        <span class="nav-icon">📄</span>
+        <span data-i18n="navReports">รายงาน / ใบรับรอง</span>
+      </a>
+    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebar-avatar">-</div>
+        <div class="user-details">
+          <div class="user-name" id="sidebar-name">-</div>
+          <div class="user-role" id="sidebar-role">-</div>
+        </div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="btn-icon-sm lang-toggle" id="lang-toggle-btn" title="Toggle Language" onclick="window._toggleLang()">EN</button>
+        <button class="btn-icon-sm" title="Logout" onclick="window._logout()">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main id="main-content">
+    <div id="app">
+      <!-- Pages load here via router -->
+    </div>
+  </main>
+
+</div>
+
+<!-- ══════════════ Toast Container ══════════════ -->
+<div id="toast-container"></div>
+
+<!-- ══════════════ Print Area ══════════════ -->
+<div id="print-area"></div>
+
+<!-- ══════════════ App Entry Point ══════════════ -->
+<script type="module">
+  import { auth, db } from "./js/config.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { applyLanguage, toggleLang, t } from "./js/i18n.js";
+  import { navigate, registerRoute } from "./js/router.js";
+
+  // ── Global state ──
+  window.CVS = { user: null, role: null, uid: null };
+
+  // ── Toast helper ──
+  window.showToast = function(msg, type = "info") {
+    const icons = { success: "✅", error: "❌", warning: "⚠️", info: "ℹ️" };
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
+    document.getElementById("toast-container").appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  };
+
+  // ── Lang toggle (exposed to onclick) ──
+  window._toggleLang = function() { toggleLang(); };
+
+  // ── Logout ──
+  window._logout = async function() {
+    await signOut(auth);
+    showUnauthenticated();
+    window.location.hash = "#login";
+  };
+
+  // ── Register all routes ──
+  registerRoute("#dashboard", async () => { const m = await import("./js/dashboard.js"); m.init(); });
+  registerRoute("#users",     async () => { const m = await import("./js/users.js");     m.init(); });
+  registerRoute("#tools",     async () => { const m = await import("./js/tools.js");     m.init(); });
+  registerRoute("#cycles",    async () => { const m = await import("./js/cycles.js");    m.init(); });
+  registerRoute("#calibration", async () => { const m = await import("./js/calibration.js"); m.init(); });
+  registerRoute("#approval",  async () => { const m = await import("./js/approval.js"); m.init(); });
+  registerRoute("#reports",   async () => { const m = await import("./js/reports.js");  m.init(); });
+  registerRoute("#login",     async () => { /* login page is static — handled by auth */ });
+
+  // ── Auth state listener ──
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      try {
+        // Fetch user profile from Firestore
+        const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+
+        if (!snap.exists()) {
+          console.warn("CVS: Firestore user document not found for UID:", firebaseUser.uid);
+          await signOut(auth);
+          showUnauthenticated();
+          showLoginError("ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแลระบบ");
+          return;
+        }
+
+        const userData = snap.data();
+
+        if (userData.status === "inactive") {
+          await signOut(auth);
+          showUnauthenticated("loginErrInactive");
+          return;
+        }
+
+        // Store globally
+        window.CVS.user  = userData;
+        window.CVS.uid   = firebaseUser.uid;
+        window.CVS.role  = userData.role;
+        window.CVS.empId = userData.employeeId;
+        window.CVS.name  = userData.name;
+
+        showAuthenticated(userData);
+
+        const hash = window.location.hash || "#dashboard";
+        navigate(hash === "#login" || !hash ? "#dashboard" : hash);
+
+      } catch (err) {
+        console.error("CVS: onAuthStateChanged error:", err.code, err.message);
+        await signOut(auth);
+        showUnauthenticated();
+        if (err.code === "permission-denied") {
+          showLoginError("ไม่มีสิทธิ์เข้าถึงข้อมูล (Firestore permission-denied) — ตรวจสอบ Security Rules");
+        } else {
+          showLoginError(`เกิดข้อผิดพลาด: ${err.message}`);
+        }
+      }
+
+    } else {
+      showUnauthenticated();
+      navigate("#login");
+    }
+  });
+
+  // ── Show login error message + re-enable button ──
+  function showLoginError(msg) {
+    const errEl = document.getElementById("login-error");
+    if (errEl) { errEl.textContent = msg; errEl.classList.add("show"); }
+    const btn = document.getElementById("login-btn");
+    if (btn) {
+      btn.disabled = false;
+      const sp = btn.querySelector("span");
+      if (sp) sp.textContent = t("loginBtn");
+    }
+  }
+
+  // ── Show login UI ──
+  function showUnauthenticated(errKey) {
+    document.getElementById("login-page").classList.remove("hidden");
+    document.getElementById("app-shell").classList.add("hidden");
+    applyLanguage();
+
+    // Setup login form
+    const form = document.getElementById("login-form");
+    if (form && !form.dataset.bound) {
+      form.dataset.bound = "1";
+      form.addEventListener("submit", handleLogin);
+    }
+
+    if (errKey) {
+      const errEl = document.getElementById("login-error");
+      if (errEl) { errEl.textContent = t(errKey); errEl.classList.add("show"); }
+    }
+  }
+
+  // ── Show app shell ──
+  function showAuthenticated(userData) {
+    document.getElementById("login-page").classList.add("hidden");
+    document.getElementById("app-shell").classList.remove("hidden");
+
+    // Sidebar user info
+    const initials = userData.name?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() || "?";
+    document.getElementById("sidebar-avatar").textContent = initials;
+    document.getElementById("sidebar-name").textContent = userData.name || userData.employeeId;
+    document.getElementById("sidebar-role").textContent = t("role" + capitalize(userData.role));
+
+    // Hide menu items by role
+    applyRoleMenu(userData.role);
+    applyLanguage();
+  }
+
+  function applyRoleMenu(role) {
+    const isAdmin      = role === "admin";
+    const isSupervisor = role === "supervisor";
+    const isTech       = role === "technician" || role === "admin";
+    const canApprove   = role === "supervisor" || role === "admin";
+    const canCalibrate = role === "technician" || role === "admin";
+
+    document.querySelectorAll(".nav-admin-only").forEach(el =>
+      el.classList.toggle("hidden", !isAdmin));
+    document.querySelectorAll(".nav-tech-only").forEach(el =>
+      el.classList.toggle("hidden", !canCalibrate));
+    document.querySelectorAll(".nav-approval-only").forEach(el =>
+      el.classList.toggle("hidden", !canApprove));
+  }
+
+  // ── Login handler ──
+  async function handleLogin(e) {
+    e.preventDefault();
+    const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+    const { toEmail } = await import("./js/config.js");
+
+    const btn = document.getElementById("login-btn");
+    const errEl = document.getElementById("login-error");
+    const empId = document.getElementById("login-empid").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    errEl.classList.remove("show");
+    btn.disabled = true;
+    btn.querySelector("span").textContent = t("loginLoading");
+
+    try {
+      await signInWithEmailAndPassword(auth, toEmail(empId), password);
+      // onAuthStateChanged will handle the rest
+    } catch (err) {
+      let errKey = "loginErrWrong";
+      if (err.code === "auth/too-many-requests") errKey = "loginErrTooMany";
+      errEl.textContent = t(errKey);
+      errEl.classList.add("show");
+      btn.disabled = false;
+      btn.querySelector("span").textContent = t("loginBtn");
+    }
+  }
+
+  // ── Helpers ──
+  function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
+
+  // Initial language apply
+  applyLanguage();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,135 @@
+<div class="page-header">
+  <div>
+    <div class="page-title" data-i18n="toolTitle">ลงทะเบียนเครื่องมือ</div>
+    <div class="page-subtitle" data-i18n="toolSubtitle">จัดการเครื่องมือวัดและติดตามสถานะการสอบเทียบ</div>
+  </div>
+  <div class="d-flex gap-8" id="tool-header-actions">
+    <input class="form-control" style="max-width:220px;" type="search"
+           data-i18n-placeholder="reportSearch" placeholder="ค้นหา..."
+           oninput="window.CVS_Tools.search(this.value)" />
+    <select class="form-control" style="max-width:160px;" onchange="window.CVS_Tools.filterStatus(this.value)">
+      <option value="">— ทุกสถานะ —</option>
+      <option value="active" data-i18n="statusActive">ปกติ</option>
+      <option value="due_soon" data-i18n="statusDueSoon">ใกล้ครบกำหนด</option>
+      <option value="overdue" data-i18n="statusOverdue">เกินกำหนด</option>
+      <option value="in_repair" data-i18n="statusInRepair">ซ่อมบำรุง</option>
+      <option value="retired" data-i18n="statusRetired">ปลดระวาง</option>
+    </select>
+    <button class="btn btn-primary" id="btn-add-tool" onclick="window.CVS_Tools.openCreate()">
+      <span data-i18n="toolAddBtn">+ ลงทะเบียนเครื่องมือ</span>
+    </button>
+  </div>
+</div>
+
+<div class="page-body">
+  <div class="card" style="padding:0;">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="toolCode">รหัส</th>
+            <th data-i18n="toolName">ชื่อเครื่องมือ</th>
+            <th data-i18n="toolType">ประเภท</th>
+            <th data-i18n="toolSerial">Serial No.</th>
+            <th data-i18n="toolTolerance">Tolerance%</th>
+            <th data-i18n="toolNextCal">วันสอบเทียบถัดไป</th>
+            <th data-i18n="toolStatus">สถานะ</th>
+            <th data-i18n="toolLocation">สถานที่</th>
+            <th data-i18n="actions">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="tool-tbody">
+          <tr><td colspan="9" class="text-center text-muted" data-i18n="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Register/Edit Tool -->
+<div class="modal-overlay" id="tool-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="tool-modal-title" data-i18n="toolCreateTitle">ลงทะเบียนเครื่องมือใหม่</span>
+      <button class="modal-close" onclick="window.CVS_Tools.closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="tool-id" />
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolCode">รหัสเครื่องมือ</label>
+          <input type="text" id="tool-code" class="form-control" placeholder="เช่น TOOL-001" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolName">ชื่อเครื่องมือ</label>
+          <input type="text" id="tool-name" class="form-control" placeholder="เช่น Vernier Caliper" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolType">ประเภท</label>
+          <select id="tool-type" class="form-control">
+            <option value="length">Length — ความยาว</option>
+            <option value="temp">Temperature — อุณหภูมิ</option>
+            <option value="force">Force — แรง</option>
+            <option value="pressure">Pressure — ความดัน</option>
+            <option value="mass">Mass — มวล</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolModel">รุ่น/โมเดล</label>
+          <input type="text" id="tool-model" class="form-control" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolSerial">หมายเลขซีเรียล</label>
+          <input type="text" id="tool-serial" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolTolerance">ค่าความเผื่อ (%)</label>
+          <input type="number" id="tool-tolerance" class="form-control" step="0.001" min="0" placeholder="เช่น 0.5" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolInterval">ช่วงเวลาสอบเทียบ (เดือน)</label>
+          <select id="tool-interval" class="form-control" onchange="window.CVS_Tools.autoCalcNext()">
+            <option value="3">3 เดือน</option>
+            <option value="6">6 เดือน</option>
+            <option value="12" selected>12 เดือน</option>
+            <option value="24">24 เดือน</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolLastCal">วันสอบเทียบล่าสุด</label>
+          <input type="date" id="tool-lastcal" class="form-control" onchange="window.CVS_Tools.autoCalcNext()" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolNextCal">วันสอบเทียบครั้งต่อไป
+            <span class="badge badge-info" style="font-size:10px;" data-i18n="toolAutoCalc">คำนวณอัตโนมัติ</span>
+          </label>
+          <input type="date" id="tool-nextcal" class="form-control" readonly style="opacity:0.7;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="toolLocation">สถานที่/แผนก</label>
+          <input type="text" id="tool-location" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group" id="tool-status-group">
+        <label class="form-label" data-i18n="toolStatus">สถานะ</label>
+        <select id="tool-status-select" class="form-control">
+          <option value="active">Active — ปกติ</option>
+          <option value="in_repair">In Repair — ซ่อมบำรุง</option>
+          <option value="retired">Retired — ปลดระวาง</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="window.CVS_Tools.closeModal()" data-i18n="cancel">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="window.CVS_Tools.save()" data-i18n="save">บันทึก</button>
+    </div>
+  </div>
+</div>

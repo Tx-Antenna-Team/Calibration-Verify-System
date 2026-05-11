@@ -1,0 +1,88 @@
+<div class="page-header">
+  <div>
+    <div class="page-title" data-i18n="cycleTitle">รอบการทดสอบ</div>
+    <div class="page-subtitle" data-i18n="cycleSubtitle">วางแผนและติดตามความคืบหน้าการสอบเทียบ</div>
+  </div>
+  <button class="btn btn-primary" id="btn-add-cycle" onclick="window.CVS_Cycles.openCreate()">
+    <span data-i18n="cycleAddBtn">+ สร้างรอบการทดสอบ</span>
+  </button>
+</div>
+
+<div class="page-body">
+  <div class="card" style="padding:0;">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="cycleCode">รหัสรอบ</th>
+            <th data-i18n="cycleName">ชื่อรอบ</th>
+            <th data-i18n="cycleStart">วันเริ่มต้น</th>
+            <th data-i18n="cycleDue">วันครบกำหนด</th>
+            <th data-i18n="cycleTech">ช่างเทคนิค</th>
+            <th data-i18n="cycleTools">เครื่องมือ</th>
+            <th data-i18n="cycleProgress">ความคืบหน้า</th>
+            <th data-i18n="cycleStatus">สถานะ</th>
+            <th data-i18n="actions">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="cycle-tbody">
+          <tr><td colspan="9" class="text-center text-muted" data-i18n="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create/Edit Cycle -->
+<div class="modal-overlay" id="cycle-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="cycle-modal-title" data-i18n="cycleCreateTitle">สร้างรอบการทดสอบใหม่</span>
+      <button class="modal-close" onclick="window.CVS_Cycles.closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cycle-id" />
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="cycleCode">รหัสรอบ</label>
+          <input type="text" id="cycle-code" class="form-control" placeholder="เช่น CYC-2026-Q1" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cycleName">ชื่อรอบ</label>
+          <input type="text" id="cycle-name" class="form-control" placeholder="เช่น Q1 2026 Calibration" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="cycleStart">วันเริ่มต้น</label>
+          <input type="date" id="cycle-start" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cycleDue">วันครบกำหนด</label>
+          <input type="date" id="cycle-due" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cycleTech">ช่างเทคนิค</label>
+        <select id="cycle-tech" class="form-control">
+          <option value="">— เลือกช่างเทคนิค —</option>
+        </select>
+      </div>
+
+      <hr class="divider" />
+      <div class="d-flex align-center gap-8 mb-8">
+        <strong data-i18n="cycleSelectTools">เลือกเครื่องมือ</strong>
+        <button type="button" class="btn btn-warning btn-sm" onclick="window.CVS_Cycles.addDueTools()">
+          ⚡ <span data-i18n="cycleAddDue">เพิ่มเครื่องมือที่ใกล้/เกินกำหนด</span>
+        </button>
+      </div>
+      <div id="tool-checklist" style="max-height:260px; overflow-y:auto; background:var(--bg); border-radius:var(--radius); border:1px solid var(--border); padding:12px;">
+        <div class="text-muted" data-i18n="loading">กำลังโหลด...</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="window.CVS_Cycles.closeModal()" data-i18n="cancel">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="window.CVS_Cycles.save()" data-i18n="save">บันทึก</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,77 @@
+<div class="page-header">
+  <div>
+    <div class="page-title" data-i18n="reportTitle">รายงาน / ใบรับรอง</div>
+    <div class="page-subtitle" data-i18n="reportSubtitle">ค้นหา กรอง และออกใบรับรองการสอบเทียบ</div>
+  </div>
+  <div class="d-flex gap-8">
+    <button class="btn btn-ghost" onclick="window.CVS_Reports.print()">🖨️ <span data-i18n="reportPrint">พิมพ์รายงาน</span></button>
+    <button class="btn btn-primary" onclick="window.CVS_Reports.exportSelected()">📄 <span data-i18n="reportExportPDF">ออกใบรับรอง PDF</span></button>
+  </div>
+</div>
+
+<div class="page-body">
+
+  <!-- Filter bar -->
+  <div class="card">
+    <div class="filter-bar">
+      <select class="form-control" id="filter-cycle" onchange="window.CVS_Reports.applyFilter()">
+        <option value="" data-i18n="reportFilterCycle">กรองตามรอบ</option>
+      </select>
+      <input type="date" id="filter-from" class="form-control" onchange="window.CVS_Reports.applyFilter()" />
+      <span class="text-muted" data-i18n="to">ถึง</span>
+      <input type="date" id="filter-to" class="form-control" onchange="window.CVS_Reports.applyFilter()" />
+      <select class="form-control" onchange="window.CVS_Reports.applyFilter()" id="filter-result">
+        <option value="" data-i18n="reportAll">ทั้งหมด</option>
+        <option value="pass" data-i18n="reportPass">ผ่าน</option>
+        <option value="fail" data-i18n="reportFail">ไม่ผ่าน</option>
+      </select>
+      <input type="search" id="filter-search" class="form-control wide"
+             data-i18n-placeholder="reportSearch" placeholder="ค้นหา..."
+             oninput="window.CVS_Reports.applyFilter()" />
+    </div>
+
+    <!-- Summary stats -->
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:0;">
+      <div class="kpi-card" style="padding:12px 16px;">
+        <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;">📊</div>
+        <div><div class="kpi-value" id="stat-total" style="font-size:22px;">-</div><div class="kpi-label" data-i18n="reportTotal">ทั้งหมด</div></div>
+      </div>
+      <div class="kpi-card" style="padding:12px 16px;">
+        <div class="kpi-icon green" style="width:36px;height:36px;font-size:16px;">✅</div>
+        <div><div class="kpi-value" id="stat-pass" style="font-size:22px;color:var(--success);">-</div><div class="kpi-label" data-i18n="reportPass">ผ่าน</div></div>
+      </div>
+      <div class="kpi-card" style="padding:12px 16px;">
+        <div class="kpi-icon red" style="width:36px;height:36px;font-size:16px;">❌</div>
+        <div><div class="kpi-value" id="stat-fail" style="font-size:22px;color:var(--danger);">-</div><div class="kpi-label" data-i18n="reportFail">ไม่ผ่าน</div></div>
+      </div>
+      <div class="kpi-card" style="padding:12px 16px;">
+        <div class="kpi-icon amber" style="width:36px;height:36px;font-size:16px;">📈</div>
+        <div><div class="kpi-value" id="stat-rate" style="font-size:22px;">-%</div><div class="kpi-label" data-i18n="reportPassRate">อัตราการผ่าน</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results table -->
+  <div class="card" style="padding:0;">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px;"><input type="checkbox" id="chk-all" onchange="window.CVS_Reports.toggleAll(this.checked)" /></th>
+            <th data-i18n="reportCertNo">เลขที่ใบรับรอง</th>
+            <th data-i18n="approvalTool">เครื่องมือ</th>
+            <th data-i18n="approvalCycle">รอบ</th>
+            <th data-i18n="approvalTech">ช่างเทคนิค</th>
+            <th data-i18n="approvalDate">วันที่ทดสอบ</th>
+            <th data-i18n="calTolerance">Tolerance%</th>
+            <th data-i18n="approvalOverall">ผลรวม</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="report-tbody">
+          <tr><td colspan="9" class="text-center text-muted" data-i18n="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,83 @@
+<div class="page-header">
+  <div>
+    <div class="page-title" data-i18n="approvalTitle">อนุมัติผลการสอบเทียบ</div>
+    <div class="page-subtitle" data-i18n="approvalSubtitle">ตรวจสอบและอนุมัติผลที่รออนุมัติ</div>
+  </div>
+</div>
+
+<div class="page-body">
+
+  <!-- Tab buttons -->
+  <div class="d-flex gap-8 mb-16">
+    <button class="btn btn-primary" id="tab-pending" onclick="window.CVS_Approval.setTab('pending')">
+      <span id="tab-pending-label" data-i18n="approvalPendingSup">รออนุมัติ</span>
+      <span id="pending-count" style="background:var(--danger);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-left:6px;">0</span>
+    </button>
+    <button class="btn btn-ghost" id="tab-history" onclick="window.CVS_Approval.setTab('history')">
+      📜 ประวัติ
+    </button>
+  </div>
+
+  <!-- Pending list -->
+  <div id="approval-pending-panel">
+    <div id="pending-cards">
+      <div class="empty-state"><div class="empty-icon">📋</div><p data-i18n="loading">กำลังโหลด...</p></div>
+    </div>
+  </div>
+
+  <!-- History list -->
+  <div id="approval-history-panel" class="hidden">
+    <div class="card" style="padding:0;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="approvalTool">เครื่องมือ</th>
+              <th data-i18n="approvalCycle">รอบ</th>
+              <th data-i18n="approvalTech">ช่างเทคนิค</th>
+              <th data-i18n="approvalDate">วันที่ทดสอบ</th>
+              <th data-i18n="approvalOverall">ผลรวม</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <tr><td colspan="6" class="text-center text-muted" data-i18n="loading">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="approval-modal">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <span class="modal-title" id="approval-modal-title">ตรวจสอบผลการสอบเทียบ</span>
+      <button class="modal-close" onclick="window.CVS_Approval.closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="approval-modal-body"></div>
+    <div class="modal-footer" id="approval-modal-footer"></div>
+  </div>
+</div>
+
+<!-- Reject reason modal -->
+<div class="modal-overlay" id="reject-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="approvalReject">ส่งคืน</span>
+      <button class="modal-close" onclick="window.CVS_Approval.closeReject()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" data-i18n="approvalRejectReason">เหตุผลที่ส่งคืน</label>
+        <textarea id="reject-reason" class="form-control" rows="3" placeholder="ระบุเหตุผล..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="window.CVS_Approval.closeReject()" data-i18n="cancel">ยกเลิก</button>
+      <button class="btn btn-danger" onclick="window.CVS_Approval.confirmReject()" data-i18n="approvalReject">ส่งคืน</button>
+    </div>
+  </div>
+</div>

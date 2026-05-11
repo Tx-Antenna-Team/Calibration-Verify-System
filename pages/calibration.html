@@ -1,0 +1,105 @@
+<div class="page-header">
+  <div>
+    <div class="page-title" data-i18n="calTitle">บันทึกผลการสอบเทียบ</div>
+    <div class="page-subtitle" data-i18n="calSubtitle">ป้อนผลการวัด 5 จุดและคำนวณผล PASS/FAIL</div>
+  </div>
+</div>
+
+<div class="page-body" style="display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start;">
+
+  <!-- Left panel: cycle + tool selector -->
+  <div>
+    <!-- Rejected results waiting for resubmit -->
+    <div id="rejected-panel" class="hidden">
+      <div class="card" style="border-left:4px solid var(--danger);">
+        <div class="card-header" style="padding-bottom:8px;">
+          <span class="card-title text-danger">🔴 <span data-i18n="calPendingResubmit">ผลที่ถูกส่งคืน</span></span>
+        </div>
+        <div id="rejected-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label" data-i18n="calSelectCycle">เลือกรอบการทดสอบ</label>
+        <select id="cal-cycle" class="form-control" onchange="window.CVS_Cal.onCycleChange()">
+          <option value="">— เลือกรอบ —</option>
+        </select>
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label" data-i18n="calSelectTool">เลือกเครื่องมือ</label>
+        <div id="tool-list-panel" style="max-height:400px;overflow-y:auto;">
+          <div class="text-muted" style="padding:8px;" data-i18n="noData">ไม่พบข้อมูล</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel: test form -->
+  <div id="test-form-panel" class="hidden">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📏 <span id="form-tool-name">-</span></span>
+        <span class="badge badge-primary" id="form-tool-code">-</span>
+      </div>
+
+      <!-- Test header -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="calTestDate">วันที่ทดสอบ</label>
+          <input type="date" id="cal-date" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="calTolerance">ค่าความเผื่อ (%)</label>
+          <input type="number" id="cal-tolerance" class="form-control" step="0.001" min="0" placeholder="เช่น 0.5" oninput="window.CVS_Cal.calculate()" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="calRefStd">อุปกรณ์มาตรฐานอ้างอิง</label>
+          <input type="text" id="cal-refstd" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="calEnvironment">สภาพแวดล้อม</label>
+          <input type="text" id="cal-env" class="form-control" placeholder="เช่น 23°C, 50%RH" />
+        </div>
+      </div>
+
+      <!-- 5-Point table -->
+      <div class="table-wrapper" style="margin-bottom:16px;">
+        <table class="test-table">
+          <thead>
+            <tr>
+              <th data-i18n="calPoint">จุดที่</th>
+              <th data-i18n="calReference">ค่าอ้างอิง</th>
+              <th data-i18n="calMeasured">ค่าที่วัดได้</th>
+              <th data-i18n="calError">ความคลาดเคลื่อน</th>
+              <th data-i18n="calPctError">% ความคลาดเคลื่อน</th>
+              <th data-i18n="calResult">ผล</th>
+            </tr>
+          </thead>
+          <tbody id="points-tbody">
+            <!-- 5 rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Overall result banner -->
+      <div class="result-banner pending" id="overall-banner" data-i18n="calOverall">ผลรวม</div>
+
+      <!-- Remarks -->
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label" data-i18n="calRemarks">หมายเหตุ</label>
+        <textarea id="cal-remarks" class="form-control" rows="2"></textarea>
+      </div>
+
+      <div class="d-flex gap-8" style="justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-ghost" onclick="window.CVS_Cal.calculate()" data-i18n="calCalculate">คำนวณ</button>
+        <button class="btn btn-primary" id="cal-submit-btn" onclick="window.CVS_Cal.submit()">
+          <span data-i18n="calSubmit">ส่งให้หัวหน้างานตรวจสอบ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
