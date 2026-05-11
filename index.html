@@ -137,7 +137,8 @@
 <script type="module">
   import { auth, db } from "./js/config.js";
   import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { doc, getDoc, collection, query, where, getCountFromServer }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { applyLanguage, toggleLang, t } from "./js/i18n.js";
   import { navigate, registerRoute } from "./js/router.js";
 
@@ -271,6 +272,20 @@
     // Hide menu items by role
     applyRoleMenu(userData.role);
     applyLanguage();
+    // Load pending-approval count into sidebar badge immediately
+    loadApprovalBadge(userData.role);
+  }
+
+  async function loadApprovalBadge(role) {
+    const statusField = role === "supervisor" ? "pending_supervisor" : "pending_admin";
+    if (role !== "supervisor" && role !== "admin") return;
+    try {
+      const q = query(collection(db, "testResults"), where("status", "==", statusField));
+      const snap = await getCountFromServer(q);
+      const cnt = snap.data().count;
+      const badge = document.getElementById("approval-badge");
+      if (badge) { badge.textContent = cnt; badge.classList.toggle("hidden", cnt === 0); }
+    } catch { /* fail silently — badge stays hidden */ }
   }
 
   function applyRoleMenu(role) {

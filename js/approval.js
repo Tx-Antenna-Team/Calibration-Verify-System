@@ -1,6 +1,6 @@
 // M6 — Approval Flow (2-Level: Supervisor → Admin)
 import { db } from "./config.js";
-import { collection, getDocs, doc, updateDoc, serverTimestamp }
+import { collection, getDocs, doc, updateDoc, serverTimestamp, query, where, getCountFromServer }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { t } from "./i18n.js";
 
@@ -189,6 +189,8 @@ async function doApprove(resultId) {
           status: "active",
         });
       }
+      // Auto-complete cycle if every tool in the cycle now has an approved result
+      await maybeCompleteCycle(r.cycleId);
     }
     showToast(t("approvalApproved"), "success");
     await reloadData();
@@ -221,6 +223,23 @@ async function confirmReject() {
     await reloadData();
   } catch (err) {
     showToast(err.message || t("errSave"), "error");
+  }
+}
+
+async function maybeCompleteCycle(cycleId) {
+  const cycle = allCycles.find(c => c.id === cycleId);
+  if (!cycle || cycle.status === "completed" || cycle.status === "cancelled") return;
+  const toolIds = cycle.toolIds || [];
+  if (toolIds.length === 0) return;
+
+  // Count how many tools in this cycle have an approved result
+  const snap = await getCountFromServer(
+    query(collection(db, "testResults"),
+      where("cycleId", "==", cycleId),
+      where("status",  "==", "approved"))
+  );
+  if (snap.data().count >= toolIds.length) {
+    await updateDoc(doc(db, "cycles", cycleId), { status: "completed" });
   }
 }
 

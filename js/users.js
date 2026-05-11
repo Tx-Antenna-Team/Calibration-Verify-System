@@ -73,6 +73,8 @@ function openCreate() {
   document.getElementById("user-pw-hint").textContent = t("userPasswordMin");
   document.getElementById("user-modal-title").setAttribute("data-i18n", "userCreateTitle");
   document.getElementById("user-modal-title").textContent = t("userCreateTitle");
+  document.getElementById("user-pw-group").classList.remove("hidden");
+  document.getElementById("user-pw-note").classList.add("hidden");
   document.getElementById("user-modal").classList.add("open");
 }
 
@@ -89,6 +91,8 @@ window.CVS_Users_openEdit = function(uid) {
   document.getElementById("user-password").value = "";
   document.getElementById("user-pw-hint").textContent = t("userPasswordHint");
   document.getElementById("user-modal-title").textContent = t("userEditTitle");
+  document.getElementById("user-pw-group").classList.add("hidden");
+  document.getElementById("user-pw-note").classList.remove("hidden");
   document.getElementById("user-modal").classList.add("open");
 };
 
@@ -124,14 +128,8 @@ async function save() {
         employeeId: empId, name, dept, role, status: "active", createdAt: serverTimestamp()
       });
     } else {
-      // EDIT: update Firestore
-      const ref = doc(db, "users", editingUid);
-      await updateDoc(ref, { name, dept, role });
-      if (password.length >= 6) {
-        // Note: updating another user's password requires Admin SDK in production
-        // For client-side we can only update current user's password
-        showToast("⚠️ การเปลี่ยนรหัสผ่านผู้ใช้อื่นต้องใช้ Firebase Admin SDK", "warning");
-      }
+      // EDIT: update Firestore only (password change not supported from client)
+      await updateDoc(doc(db, "users", editingUid), { name, dept, role });
     }
     showToast(t("userSaved"), "success");
     closeModal();
