@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────
+    function isAuth() { return request.auth != null; }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userExists() {
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isActiveUser() {
+      return userExists() && userDoc().data.status == "active";
+    }
+
+    function isAdmin()      { return isActiveUser() && userDoc().data.role == "admin"; }
+    function isSupervisor() { return isActiveUser() && userDoc().data.role == "supervisor"; }
+    function isTechnician() { return isActiveUser() && userDoc().data.role == "technician"; }
+
+    // ── /users ───────────────────────────────────────────────
+    match /users/{uid} {
+      allow read:   if isActiveUser();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── /tools ───────────────────────────────────────────────
+    match /tools/{toolId} {
+      allow read:   if isActiveUser();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── /cycles ──────────────────────────────────────────────
+    match /cycles/{cycleId} {
+      allow read:   if isActiveUser();
+      allow create: if isAdmin();
+      allow update: if isAdmin()
+        // Technician can only flip status planned→in_progress (no other fields)
+        || (isTechnician()
+            && resource.data.status == "planned"
+            && request.resource.data.status == "in_progress"
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]));
+      allow delete: if isAdmin();
+    }
+
+    // ── /testResults ─────────────────────────────────────────
+    match /testResults/{resultId} {
+      allow read: if isActiveUser();
+      allow create: if isAdmin() || isTechnician();
+      allow update: if isAdmin()      && resource.data.status == "pending_admin"
+                    || isSupervisor() && resource.data.status == "pending_supervisor"
+                    || isTechnician() && resource.data.technicianId == request.auth.uid
+                                      && resource.data.status == "rejected";
+      allow delete: if isAdmin();
+    }
+  }
+}

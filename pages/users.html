@@ -123,10 +123,13 @@
           </select>
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group" id="user-pw-group">
         <label class="form-label" data-i18n="userPassword">รหัสผ่าน</label>
         <input type="password" id="user-password" class="form-control" />
         <div class="form-text" id="user-pw-hint" data-i18n="userPasswordMin">อย่างน้อย 6 ตัวอักษร</div>
+      </div>
+      <div class="form-group hidden" id="user-pw-note" style="background:var(--card-alt);border-radius:var(--radius);padding:10px 14px;">
+        <span style="font-size:13px;color:var(--text-muted);">🔒 การเปลี่ยนรหัสผ่านต้องให้ Admin ปิดการใช้งานบัญชีนี้แล้วสร้างใหม่</span>
       </div>
     </div>
     <div class="modal-footer">
