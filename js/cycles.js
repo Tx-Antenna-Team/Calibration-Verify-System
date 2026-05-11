@@ -1,6 +1,6 @@
 // M4 — Test Cycle Management
 import { db } from "./config.js";
-import { collection, getDocs, doc, addDoc, updateDoc, serverTimestamp, query, where }
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { t } from "./i18n.js";
 
@@ -8,7 +8,7 @@ let allCycles = [], allTools = [], allUsers = [], allResults = [];
 let editingId = null;
 
 export async function init() {
-  window.CVS_Cycles = { openCreate, openEdit, closeModal, save, addDueTools };
+  window.CVS_Cycles = { openCreate, openEdit, closeModal, save, addDueTools, deleteCycle };
   const role = window.CVS?.role;
   const canEdit = role === "admin";
   const addBtn = document.getElementById("btn-add-cycle");
@@ -79,9 +79,10 @@ function renderTable() {
         </div>
       </td>
       <td><span class="badge ${sCls}">${sLbl}</span></td>
-      <td>${canEdit
-        ? `<button class="btn btn-ghost btn-sm" onclick="window.CVS_Cycles.openEdit('${cycle.id}')">✏️ ${t("edit")}</button>`
-        : "-"}</td>
+      <td>${canEdit ? `
+        <button class="btn btn-ghost btn-sm" onclick="window.CVS_Cycles.openEdit('${cycle.id}')">✏️ ${t("edit")}</button>
+        <button class="btn btn-danger btn-sm" onclick="window.CVS_Cycles.deleteCycle('${cycle.id}','${(cycle.name||cycle.code||"").replace(/'/g,"\\'")}')">🗑️ ${t("delete")}</button>
+      ` : "-"}</td>
     </tr>`;
   }).join("");
 }
@@ -144,6 +145,22 @@ function fillTechDropdown(selectedId) {
   const techs = allUsers.filter(u => u.role === "technician" || u.role === "admin");
   sel.innerHTML = `<option value="">— เลือกช่างเทคนิค —</option>` +
     techs.map(u => `<option value="${u.id}" ${u.id === selectedId ? "selected" : ""}>${u.employeeId} — ${u.name}</option>`).join("");
+}
+
+async function deleteCycle(id, name) {
+  if (!confirm(`ลบรอบการทดสอบ "${name}" ใช่หรือไม่?\nผลการสอบเทียบทั้งหมดในรอบนี้จะถูกลบด้วย`)) return;
+  try {
+    // Delete all testResults belonging to this cycle first
+    const snap = await getDocs(query(collection(db, "testResults"), where("cycleId", "==", id)));
+    await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    await deleteDoc(doc(db, "cycles", id));
+    showToast("ลบรอบการทดสอบเรียบร้อย", "success");
+    allCycles  = allCycles.filter(c => c.id !== id);
+    allResults = allResults.filter(r => r.cycleId !== id);
+    renderTable();
+  } catch (err) {
+    showToast(err.message || t("errSave"), "error");
+  }
 }
 
 function closeModal() {
