@@ -1,6 +1,6 @@
 // M3 — Tool Registration
 import { db } from "./config.js";
-import { collection, getDocs, doc, addDoc, updateDoc, serverTimestamp }
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { t } from "./i18n.js";
 
@@ -10,7 +10,7 @@ let searchVal = "";
 let editingId = null;
 
 export async function init() {
-  window.CVS_Tools = { openCreate, openEdit, closeModal, save, search, filterStatus, autoCalcNext };
+  window.CVS_Tools = { openCreate, openEdit, closeModal, save, search, filterStatus, autoCalcNext, deleteTool };
   // Hide add/edit for non-admin roles
   const role = window.CVS?.role;
   const canEdit = role === "admin";
@@ -83,9 +83,10 @@ function renderTable() {
     <td>${tool.nextCalDate||"-"}</td>
     <td>${statusBadge(tool)}</td>
     <td>${tool.location||"-"}</td>
-    <td>${canEdit
-      ? `<button class="btn btn-ghost btn-sm" onclick="window.CVS_Tools.openEdit('${tool.id}')">✏️ ${t("edit")}</button>`
-      : "-"}</td>
+    <td>${canEdit ? `
+      <button class="btn btn-ghost btn-sm" onclick="window.CVS_Tools.openEdit('${tool.id}')">✏️ ${t("edit")}</button>
+      <button class="btn btn-danger btn-sm" onclick="window.CVS_Tools.deleteTool('${tool.id}')">🗑️ ${t("delete")}</button>
+    ` : "-"}</td>
   </tr>`).join("");
 }
 
@@ -169,6 +170,19 @@ async function save() {
     }
     showToast(t("toolSaved"), "success");
     closeModal();
+    await loadTools();
+  } catch (err) {
+    showToast(err.message || t("errSave"), "error");
+  }
+}
+
+async function deleteTool(id) {
+  const tool = allTools.find(t => t.id === id);
+  if (!tool) return;
+  if (!confirm(`ลบเครื่องมือ "${tool.name}" ใช่หรือไม่?\nข้อมูลจะถูกลบถาวร`)) return;
+  try {
+    await deleteDoc(doc(db, "tools", id));
+    showToast(t("toolDeleted"), "success");
     await loadTools();
   } catch (err) {
     showToast(err.message || t("errSave"), "error");

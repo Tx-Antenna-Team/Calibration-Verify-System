@@ -2,7 +2,7 @@
 import { auth, db, toEmail, firebaseConfig } from "./config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, getDocs, doc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { t } from "./i18n.js";
 
 // Secondary app so creating a user doesn't sign out the current admin session
@@ -13,7 +13,7 @@ let allUsers = [];
 let editingUid = null;
 
 export async function init() {
-  window.CVS_Users = { openCreate, closeModal, save, search, toggleStatus };
+  window.CVS_Users = { openCreate, closeModal, save, search, toggleStatus, deleteUser };
   await loadUsers();
 }
 
@@ -46,6 +46,7 @@ function renderTable(users) {
                 onclick="window.CVS_Users.toggleStatus('${u.uid}','${u.status}')">
           ${u.status === "active" ? "🚫 "+t("userInactive") : "✅ "+t("userActive")}
         </button>
+        <button class="btn btn-danger btn-sm" onclick="window.CVS_Users.deleteUser('${u.uid}','${u.name||u.employeeId}')">🗑️ ${t("delete")}</button>
       </td>
     </tr>`;
   }).join("");
@@ -136,6 +137,20 @@ async function save() {
     await loadUsers();
   } catch (err) {
     console.error(err);
+    showToast(err.message || t("errSave"), "error");
+  }
+}
+
+async function deleteUser(uid, name) {
+  if (uid === window.CVS?.uid) {
+    showToast("ไม่สามารถลบบัญชีของตัวเองได้", "warning"); return;
+  }
+  if (!confirm(`ลบผู้ใช้ "${name}" ใช่หรือไม่?\nข้อมูลจะถูกลบถาวรออกจากระบบ`)) return;
+  try {
+    await deleteDoc(doc(db, "users", uid));
+    showToast("ลบผู้ใช้เรียบร้อย", "success");
+    await loadUsers();
+  } catch (err) {
     showToast(err.message || t("errSave"), "error");
   }
 }
