@@ -142,7 +142,7 @@ function openEdit(id) {
 function fillTechDropdown(selectedId) {
   const sel = document.getElementById("cycle-tech");
   if (!sel) return;
-  const techs = allUsers.filter(u => u.role === "technician" || u.role === "admin");
+  const techs = allUsers.filter(u => u.role === "technician");
   sel.innerHTML = `<option value="">— เลือกช่างเทคนิค —</option>` +
     techs.map(u => `<option value="${u.id}" ${u.id === selectedId ? "selected" : ""}>${u.employeeId} — ${u.name}</option>`).join("");
 }

@@ -100,6 +100,13 @@
         <span class="nav-icon">📄</span>
         <span data-i18n="navReports">รายงาน / ใบรับรอง</span>
       </a>
+
+      <div class="nav-section-label">Support</div>
+
+      <a class="nav-item" data-route="#issues" href="#issues">
+        <span class="nav-icon">💬</span>
+        <span data-i18n="issueTitle">Feedback & Issues</span>
+      </a>
     </nav>
 
     <!-- Footer -->
@@ -173,6 +180,7 @@
   registerRoute("#calibration", async () => { const m = await import("./js/calibration.js"); m.init(); });
   registerRoute("#approval",  async () => { const m = await import("./js/approval.js"); m.init(); });
   registerRoute("#reports",   async () => { const m = await import("./js/reports.js");  m.init(); });
+  registerRoute("#issues",    async () => { const m = await import("./js/issues.js");   m.init(); });
   registerRoute("#login",     async () => { /* login page is static — handled by auth */ });
 
   // ── Auth state listener ──
