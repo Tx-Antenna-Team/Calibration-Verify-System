@@ -50,6 +50,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── /config ──────────────────────────────────────────────
+    match /config/{docId} {
+      allow read:  if isActiveUser();
+      allow write: if isAdmin();
+    }
+
     // ── /testResults ─────────────────────────────────────────
     match /testResults/{resultId} {
       allow read: if isActiveUser();

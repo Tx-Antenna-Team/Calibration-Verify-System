@@ -100,6 +100,13 @@
         <span class="nav-icon">📄</span>
         <span data-i18n="navReports">รายงาน / ใบรับรอง</span>
       </a>
+
+      <div class="nav-section-label">Support</div>
+
+      <a class="nav-item" data-route="#issues" href="#issues">
+        <span class="nav-icon">💬</span>
+        <span data-i18n="issueTitle">Feedback & Issues</span>
+      </a>
     </nav>
 
     <!-- Footer -->
@@ -173,6 +180,7 @@
   registerRoute("#calibration", async () => { const m = await import("./js/calibration.js"); m.init(); });
   registerRoute("#approval",  async () => { const m = await import("./js/approval.js"); m.init(); });
   registerRoute("#reports",   async () => { const m = await import("./js/reports.js");  m.init(); });
+  registerRoute("#issues",    async () => { const m = await import("./js/issues.js");   m.init(); });
   registerRoute("#login",     async () => { /* login page is static — handled by auth */ });
 
   // ── Auth state listener ──
@@ -243,9 +251,20 @@
   function showUnauthenticated(errKey) {
     document.getElementById("login-page").classList.remove("hidden");
     document.getElementById("app-shell").classList.add("hidden");
+
+    // Always reset login button and error state
+    const btn = document.getElementById("login-btn");
+    if (btn) {
+      btn.disabled = false;
+      const sp = btn.querySelector("span");
+      if (sp) sp.textContent = t("loginBtn");
+    }
+    const errEl = document.getElementById("login-error");
+    if (errEl) { errEl.textContent = ""; errEl.classList.remove("show"); }
+
     applyLanguage();
 
-    // Setup login form
+    // Setup login form (only bind once)
     const form = document.getElementById("login-form");
     if (form && !form.dataset.bound) {
       form.dataset.bound = "1";
@@ -253,7 +272,6 @@
     }
 
     if (errKey) {
-      const errEl = document.getElementById("login-error");
       if (errEl) { errEl.textContent = t(errKey); errEl.classList.add("show"); }
     }
   }
