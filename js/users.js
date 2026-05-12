@@ -6,14 +6,36 @@ import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, serverTimestamp
 import { t } from "./i18n.js";
 
 // Secondary app so creating a user doesn't sign out the current admin session
-const _secondaryApp  = initializeApp(firebaseConfig, "cvs-admin-helper");
-const _secondaryAuth = getAuth(_secondaryApp);
+let _secondaryApp, _secondaryAuth;
+try {
+  _secondaryApp  = initializeApp(firebaseConfig, "cvs-admin-helper");
+  _secondaryAuth = getAuth(_secondaryApp);
+} catch {
+  // Already initialized (module cache) — get existing instance
+  const { getApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  _secondaryApp  = getApp("cvs-admin-helper");
+  _secondaryAuth = getAuth(_secondaryApp);
+}
 
-let allUsers = [];
+let allUsers   = [];
 let editingUid = null;
 
 export async function init() {
   window.CVS_Users = { openCreate, openEdit, closeModal, save, search, toggleStatus, deleteUser };
+
+  // Event delegation — avoids inline onclick issues entirely
+  const tbody = document.getElementById("user-tbody");
+  if (tbody) {
+    tbody.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      const { action, uid, status, name } = btn.dataset;
+      if (action === "edit")   openEdit(uid);
+      if (action === "toggle") toggleStatus(uid, status);
+      if (action === "delete") deleteUser(uid, name);
+    });
+  }
+
   await loadUsers();
 }
 
@@ -34,6 +56,7 @@ function renderTable(users) {
     const roleBadge = { admin:"badge-primary", supervisor:"badge-success", qa:"badge-info", technician:"badge-warning", viewer:"badge-muted" }[u.role] || "badge-muted";
     const statusCls = u.status === "active" ? "badge-success" : "badge-danger";
     const statusLbl = u.status === "active" ? t("userActive") : t("userInactive");
+    const safeName  = (u.name || u.employeeId || "").replace(/"/g, "&quot;");
     return `<tr>
       <td><code>${u.employeeId || "-"}</code></td>
       <td>${u.name || "-"}</td>
@@ -41,38 +64,39 @@ function renderTable(users) {
       <td><span class="badge ${roleBadge}">${u.role || "-"}</span></td>
       <td><span class="badge ${statusCls}">${statusLbl}</span></td>
       <td>
-        <button class="btn btn-ghost btn-sm" onclick="window.CVS_Users.openEdit('${u.uid}')">✏️ ${t("edit")}</button>
-        <button class="btn btn-sm ${u.status==="active"?"btn-warning":"btn-success"}"
-                onclick="window.CVS_Users.toggleStatus('${u.uid}','${u.status}')">
-          ${u.status === "active" ? "🚫 "+t("userInactive") : "✅ "+t("userActive")}
+        <button class="btn btn-ghost btn-sm"
+                data-action="edit" data-uid="${u.uid}">✏️ ${t("edit")}</button>
+        <button class="btn btn-sm ${u.status === "active" ? "btn-warning" : "btn-success"}"
+                data-action="toggle" data-uid="${u.uid}" data-status="${u.status}">
+          ${u.status === "active" ? "🚫 " + t("userInactive") : "✅ " + t("userActive")}
         </button>
-        <button class="btn btn-danger btn-sm" onclick="window.CVS_Users.deleteUser('${u.uid}','${u.name||u.employeeId}')">🗑️ ${t("delete")}</button>
+        <button class="btn btn-danger btn-sm"
+                data-action="delete" data-uid="${u.uid}" data-name="${safeName}">🗑️ ${t("delete")}</button>
       </td>
     </tr>`;
   }).join("");
 }
 
-function search(q) {
+export function search(q) {
   const lower = q.toLowerCase();
   renderTable(allUsers.filter(u =>
-    (u.employeeId||"").toLowerCase().includes(lower) ||
-    (u.name||"").toLowerCase().includes(lower) ||
-    (u.dept||"").toLowerCase().includes(lower)
+    (u.employeeId || "").toLowerCase().includes(lower) ||
+    (u.name       || "").toLowerCase().includes(lower) ||
+    (u.dept       || "").toLowerCase().includes(lower)
   ));
 }
 
 function openCreate() {
   editingUid = null;
-  document.getElementById("user-uid").value = "";
-  document.getElementById("user-empid").value = "";
+  document.getElementById("user-uid").value      = "";
+  document.getElementById("user-empid").value    = "";
   document.getElementById("user-empid").disabled = false;
-  document.getElementById("user-name").value = "";
-  document.getElementById("user-dept").value = "";
-  document.getElementById("user-role").value = "technician";
+  document.getElementById("user-name").value     = "";
+  document.getElementById("user-dept").value     = "";
+  document.getElementById("user-role").value     = "technician";
   document.getElementById("user-password").value = "";
   document.getElementById("user-pw-hint").setAttribute("data-i18n", "userPasswordMin");
   document.getElementById("user-pw-hint").textContent = t("userPasswordMin");
-  document.getElementById("user-modal-title").setAttribute("data-i18n", "userCreateTitle");
   document.getElementById("user-modal-title").textContent = t("userCreateTitle");
   document.getElementById("user-pw-group").classList.remove("hidden");
   document.getElementById("user-pw-note").classList.add("hidden");
@@ -83,14 +107,14 @@ function openEdit(uid) {
   const u = allUsers.find(x => x.uid === uid);
   if (!u) return;
   editingUid = uid;
-  document.getElementById("user-uid").value = uid;
-  document.getElementById("user-empid").value = u.employeeId || "";
+  document.getElementById("user-uid").value      = uid;
+  document.getElementById("user-empid").value    = u.employeeId || "";
   document.getElementById("user-empid").disabled = true;
-  document.getElementById("user-name").value = u.name || "";
-  document.getElementById("user-dept").value = u.dept || "";
-  document.getElementById("user-role").value = u.role || "viewer";
+  document.getElementById("user-name").value     = u.name || "";
+  document.getElementById("user-dept").value     = u.dept || "";
+  document.getElementById("user-role").value     = u.role || "viewer";
   document.getElementById("user-password").value = "";
-  document.getElementById("user-pw-hint").textContent = t("userPasswordHint");
+  document.getElementById("user-pw-hint").textContent   = t("userPasswordHint");
   document.getElementById("user-modal-title").textContent = t("userEditTitle");
   document.getElementById("user-pw-group").classList.add("hidden");
   document.getElementById("user-pw-note").classList.remove("hidden");
@@ -113,19 +137,16 @@ async function save() {
 
   try {
     if (!editingUid) {
-      // CREATE: need empId + password
       if (!empId || password.length < 6) {
         showToast(t("errRequired") + " (รหัสพนักงาน + รหัสผ่าน ≥6 ตัว)", "warning"); return;
       }
       const email = toEmail(empId);
-      // Use secondary auth so admin session is NOT interrupted
-      const cred = await createUserWithEmailAndPassword(_secondaryAuth, email, password);
+      const cred  = await createUserWithEmailAndPassword(_secondaryAuth, email, password);
       await _secondaryAuth.signOut();
       await setDoc(doc(db, "users", cred.user.uid), {
         employeeId: empId, name, dept, role, status: "active", createdAt: serverTimestamp()
       });
     } else {
-      // EDIT: update Firestore only (password change not supported from client)
       await updateDoc(doc(db, "users", editingUid), { name, dept, role });
     }
     showToast(t("userSaved"), "success");
