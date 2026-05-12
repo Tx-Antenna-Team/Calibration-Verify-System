@@ -13,7 +13,7 @@ let allUsers = [];
 let editingUid = null;
 
 export async function init() {
-  window.CVS_Users = { openCreate, closeModal, save, search, toggleStatus, deleteUser };
+  window.CVS_Users = { openCreate, openEdit, closeModal, save, search, toggleStatus, deleteUser };
   await loadUsers();
 }
 
@@ -79,7 +79,7 @@ function openCreate() {
   document.getElementById("user-modal").classList.add("open");
 }
 
-window.CVS_Users_openEdit = function(uid) {
+function openEdit(uid) {
   const u = allUsers.find(x => x.uid === uid);
   if (!u) return;
   editingUid = uid;
@@ -95,11 +95,7 @@ window.CVS_Users_openEdit = function(uid) {
   document.getElementById("user-pw-group").classList.add("hidden");
   document.getElementById("user-pw-note").classList.remove("hidden");
   document.getElementById("user-modal").classList.add("open");
-};
-
-// Expose to inline onclick
-window.CVS_Users = window.CVS_Users || {};
-window.CVS_Users.openEdit = window.CVS_Users_openEdit;
+}
 
 function closeModal() {
   document.getElementById("user-modal").classList.remove("open");
