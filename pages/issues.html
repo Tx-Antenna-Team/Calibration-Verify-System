@@ -35,18 +35,37 @@
             onclick="window.CVS_Issues.applyFilter('closed')" data-i18n="issueFilterClosed">ปิดแล้ว</button>
     <button class="btn btn-ghost btn-sm issue-filter-btn" data-filter="all"
             onclick="window.CVS_Issues.applyFilter('all')" data-i18n="issueFilterAll">ทั้งหมด</button>
-
     <div style="flex:1;"></div>
-
     <a href="https://github.com/tx-antenna-team/calibration-verify-system/issues"
-       target="_blank" rel="noopener" class="btn btn-ghost btn-sm">
-      🔗 GitHub Issues
-    </a>
+       target="_blank" rel="noopener" class="btn btn-ghost btn-sm">🔗 GitHub Issues</a>
   </div>
 
   <!-- Issues List -->
   <div id="issues-list">
     <div class="text-center text-muted" style="padding:40px;" data-i18n="issueLoading">กำลังโหลด...</div>
+  </div>
+
+  <!-- Admin: Token Settings -->
+  <div id="token-section" class="hidden" style="margin-top:32px;">
+    <div class="card" style="padding:20px 24px;border:1px solid var(--warning,#f59e0b)44;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <span style="font-size:18px;">🔑</span>
+        <strong data-i18n="issueTokenSetting">ตั้งค่า GitHub Token (Admin)</strong>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;" data-i18n="issueTokenHint">
+        ต้องใช้ GitHub Fine-grained PAT ที่มีสิทธิ์ Issues: Read &amp; Write บน repository นี้
+        Token จะถูกเก็บใน Firestore และใช้โดย App เท่านั้น
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="form-group" style="flex:1;margin-bottom:0;">
+          <label class="form-label" data-i18n="issueTokenLabel">GitHub Personal Access Token</label>
+          <input type="password" id="github-token-input" class="form-control"
+                 data-i18n-placeholder="issueTokenPlaceholder"
+                 placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+        </div>
+        <button class="btn btn-primary" onclick="window.CVS_Issues.saveToken()" data-i18n="save">บันทึก</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -80,7 +99,7 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label" data-i18n="issueTitleLabel">หัวข้อ <span class="text-danger">*</span></label>
+        <label class="form-label" data-i18n="issueTitleLabel">หัวข้อ <span style="color:var(--danger,#ef4444);">*</span></label>
         <input type="text" id="fb-title" class="form-control"
                data-i18n-placeholder="issueTitlePlaceholder"
                placeholder="อธิบายปัญหาหรือข้อเสนอแนะสั้น ๆ" />
@@ -94,15 +113,10 @@
                   style="resize:vertical;"></textarea>
       </div>
 
-      <div class="alert" style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text-muted);display:flex;gap:10px;align-items:flex-start;">
-        <span style="font-size:16px;">💡</span>
-        <span data-i18n="issueSubmitNote">ระบบจะเปิด GitHub ในแท็บใหม่ กรุณาล็อกอิน GitHub แล้วกด Submit</span>
-      </div>
-
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="window.CVS_Issues.closeFeedback()" data-i18n="cancel">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="window.CVS_Issues.submitFeedback()">
+      <button class="btn btn-primary" id="fb-submit-btn" onclick="window.CVS_Issues.submitFeedback()">
         <span data-i18n="issueSubmitGithub">ส่งไปยัง GitHub Issues</span>
       </button>
     </div>
