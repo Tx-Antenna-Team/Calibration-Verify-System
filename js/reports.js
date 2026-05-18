@@ -139,6 +139,23 @@ function loadScript(src) {
   });
 }
 
+// Strip any char outside printable ASCII so jsPDF/Helvetica (WinAnsi only)
+// doesn't fall back to UTF-16BE mode, which causes the "&O&V&E..." garble.
+// Thai/CJK and special Unicode (check, cross, em-dash etc.) get replaced.
+function pdfSafe(s) {
+  if (s == null) return "-";
+  const out = String(s)
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")    // combining diacritics
+    .replace(/[‐-―]/g, "-")   // dashes -> hyphen
+    .replace(/[‘’‚‛]/g, "'")  // smart single quotes
+    .replace(/[“”„‟]/g, '"')  // smart double quotes
+    .replace(/…/g, "...")          // ellipsis
+    .replace(/[^\x20-\x7E]/g, "?")      // anything else -> ?
+    .trim();
+  return out || "-";
+}
+
 async function exportSingle(resultId) {
   const r = allResults.find(x => x.id === resultId);
   if (!r) return;
@@ -179,10 +196,13 @@ async function generateCertificate(r) {
   pdf.text("CALIBRATION CERTIFICATE", W / 2, 17, { align: "center" });
   y = 36;
 
+  // Build issue date in ISO/Buddhist arabic-numeral form, then sanitize
+  const issueDate = new Date().toLocaleDateString("en-GB"); // dd/mm/yyyy ASCII
+
   // ── Cert info ──
   pdf.setFontSize(9); pdf.setFont("helvetica", "normal"); pdf.setTextColor(80, 80, 80);
-  pdf.text(`Certificate No: ${r.certNo || "-"}`, PX, y);
-  pdf.text(`Issue Date: ${new Date().toLocaleDateString("th-TH")}`, W - PX, y, { align: "right" });
+  pdf.text(`Certificate No: ${pdfSafe(r.certNo)}`, PX, y);
+  pdf.text(`Issue Date: ${pdfSafe(issueDate)}`, W - PX, y, { align: "right" });
   y += 8;
 
   // ── Tool info box ──
@@ -192,10 +212,10 @@ async function generateCertificate(r) {
   pdf.text("TOOL INFORMATION", PX + 4, y + 7);
   pdf.setFontSize(9); pdf.setFont("helvetica", "normal"); pdf.setTextColor(60, 60, 60);
   const col2 = W / 2 + 5;
-  pdf.text(`Tool Code : ${tool?.code || "-"}`,   PX + 4, y + 14);
-  pdf.text(`Tool Name : ${tool?.name || "-"}`,   PX + 4, y + 20);
-  pdf.text(`Type      : ${tool?.type || "-"}`,   col2,   y + 14);
-  pdf.text(`Serial No : ${tool?.serialNo || "-"}`, col2,  y + 20);
+  pdf.text(`Tool Code : ${pdfSafe(tool?.code)}`,   PX + 4, y + 14);
+  pdf.text(`Tool Name : ${pdfSafe(tool?.name)}`,   PX + 4, y + 20);
+  pdf.text(`Type      : ${pdfSafe(tool?.type)}`,   col2,   y + 14);
+  pdf.text(`Serial No : ${pdfSafe(tool?.serialNo)}`, col2,  y + 20);
   y += 34;
 
   // ── Test details ──
@@ -203,12 +223,12 @@ async function generateCertificate(r) {
   pdf.text("TEST DETAILS", PX, y + 6);
   pdf.setFontSize(9); pdf.setFont("helvetica", "normal"); pdf.setTextColor(60, 60, 60);
   y += 10;
-  pdf.text(`Test Date      : ${r.testDate || "-"}`,          PX, y);
-  pdf.text(`Ref. Standard  : ${r.refStandard || "-"}`,       col2, y); y += 6;
-  pdf.text(`Technician     : ${tech?.employeeId||""} ${tech?.name || "-"}`, PX, y);
-  pdf.text(`Environment    : ${r.environment || "-"}`,        col2, y); y += 6;
-  pdf.text(`Tolerance      : ${r.tolerance || "-"} %`,        PX, y);
-  pdf.text(`Cycle          : ${cycle?.code || "-"}`,          col2, y);
+  pdf.text(`Test Date      : ${pdfSafe(r.testDate)}`,          PX, y);
+  pdf.text(`Ref. Standard  : ${pdfSafe(r.refStandard)}`,       col2, y); y += 6;
+  pdf.text(`Technician     : ${pdfSafe(`${tech?.employeeId||""} ${tech?.name||""}`)}`, PX, y);
+  pdf.text(`Environment    : ${pdfSafe(r.environment)}`,        col2, y); y += 6;
+  pdf.text(`Tolerance      : ${pdfSafe(r.tolerance)} %`,        PX, y);
+  pdf.text(`Cycle          : ${pdfSafe(cycle?.code)}`,          col2, y);
   y += 10;
 
   // ── 5-Point table ──
@@ -217,10 +237,10 @@ async function generateCertificate(r) {
 
   const tableBody = (r.points || []).map((pt, i) => [
     i + 1,
-    (pt.ref ?? "-").toString(),
-    (pt.measured ?? "-").toString(),
-    (pt.error ?? 0).toFixed(4),
-    (pt.pctError ?? 0).toFixed(4) + "%",
+    pdfSafe(pt.ref),
+    pdfSafe(pt.measured),
+    pdfSafe((pt.error ?? 0).toFixed(4)),
+    pdfSafe((pt.pctError ?? 0).toFixed(4) + "%"),
     pt.pass ? "PASS" : "FAIL",
   ]);
 
@@ -244,11 +264,14 @@ async function generateCertificate(r) {
   y = pdf.lastAutoTable.finalY + 8;
 
   // ── Overall result banner ──
+  // Force font reset so jsPDF doesn't carry encoding state from autoTable
   const pass = r.overallPass;
   pdf.setFillColor(...(pass ? [34, 197, 94] : [239, 68, 68]));
   pdf.roundedRect(PX, y, W - PX * 2, 14, 2, 2, "F");
-  pdf.setFontSize(13); pdf.setFont("helvetica", "bold"); pdf.setTextColor(255, 255, 255);
-  pdf.text(`OVERALL RESULT: ${pass ? "PASS" : "FAIL"}`, W / 2, y + 9.5, { align: "center" });
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(13);
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(pass ? "OVERALL RESULT: PASS" : "OVERALL RESULT: FAIL", W / 2, y + 9.5, { align: "center" });
   y += 22;
 
   // ── Signatures ──
@@ -257,18 +280,20 @@ async function generateCertificate(r) {
   // Left sig
   pdf.line(PX, y + 14, PX + sigW, y + 14);
   pdf.text("Technician", PX + sigW / 2, y + 19, { align: "center" });
-  pdf.text(tech?.name || "-", PX + sigW / 2, y + 24, { align: "center" });
+  pdf.text(pdfSafe(tech?.name), PX + sigW / 2, y + 24, { align: "center" });
   // Right sig
   const sigX2 = W / 2 + 5;
   pdf.line(sigX2, y + 14, sigX2 + sigW, y + 14);
   pdf.text("Supervisor / Approver", sigX2 + sigW / 2, y + 19, { align: "center" });
-  pdf.text(sup?.name || "-", sigX2 + sigW / 2, y + 24, { align: "center" });
+  pdf.text(pdfSafe(sup?.name), sigX2 + sigW / 2, y + 24, { align: "center" });
 
   // ── Footer ──
   pdf.setFontSize(8); pdf.setTextColor(150, 150, 150);
-  pdf.text("Generated by CVS — Calibration Verification System", W / 2, 290, { align: "center" });
+  pdf.text("Generated by CVS - Calibration Verification System", W / 2, 290, { align: "center" });
 
-  pdf.save(`${r.certNo || "certificate"}.pdf`);
+  // Sanitize filename too (filesystems handle Unicode but keep it consistent)
+  const safeName = pdfSafe(r.certNo).replace(/[^A-Za-z0-9._-]/g, "_");
+  pdf.save(`${safeName || "certificate"}.pdf`);
   showToast(`ดาวน์โหลด ${r.certNo || "certificate"}.pdf`, "success");
 }
 
