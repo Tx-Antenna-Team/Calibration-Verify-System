@@ -51,6 +51,53 @@
     </div>
   </div>
 
+  <!-- Trends & Forecast card -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+      <div>
+        <div style="font-weight:700; font-size:16px;">📈 <span data-i18n="reportTrendTitle">เทรนด์ผลการทดสอบและการพยากรณ์</span></div>
+        <div style="font-size:12px; color: var(--text-muted); margin-top:2px;" data-i18n="reportTrendSubtitle">ดูแนวโน้มจากข้อมูลที่กรองอยู่ พร้อมพยากรณ์ด้วย linear regression</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="trend-bucket" class="form-control" onchange="window.CVS_Reports.renderCharts()" style="min-width:120px;">
+          <option value="month" data-i18n="reportTrendByMonth">รายเดือน</option>
+          <option value="week" data-i18n="reportTrendByWeek">รายสัปดาห์</option>
+          <option value="quarter" data-i18n="reportTrendByQuarter">รายไตรมาส</option>
+        </select>
+        <select id="trend-tool" class="form-control" onchange="window.CVS_Reports.renderCharts()" style="min-width:180px;">
+          <option value="" data-i18n="reportTrendAllTools">ทุกเครื่องมือ (ค่าเฉลี่ย)</option>
+        </select>
+        <select id="trend-forecast" class="form-control" onchange="window.CVS_Reports.renderCharts()" style="min-width:140px;">
+          <option value="3" data-i18n="reportTrendFc3">พยากรณ์ 3 ช่วง</option>
+          <option value="6" data-i18n="reportTrendFc6">พยากรณ์ 6 ช่วง</option>
+          <option value="0" data-i18n="reportTrendFcOff">ไม่พยากรณ์</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="trend-empty" class="hidden text-center text-muted" style="padding:32px;">
+      <div style="font-size:36px;">📊</div>
+      <div data-i18n="reportTrendNoData" style="margin-top:6px;">ข้อมูลไม่เพียงพอสำหรับสร้างกราฟ (ต้องการอย่างน้อย 2 ช่วงเวลา)</div>
+    </div>
+
+    <div id="trend-charts" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px;">
+      <div>
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;" data-i18n="reportTrendPassRate">อัตราการผ่าน (%) ตามเวลา</div>
+        <div style="position:relative; height:260px; background:var(--card-alt); border-radius:var(--radius); padding:8px;">
+          <canvas id="chart-passrate"></canvas>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;" data-i18n="reportTrendError">% Error เฉลี่ย ตามเวลา</div>
+        <div style="position:relative; height:260px; background:var(--card-alt); border-radius:var(--radius); padding:8px;">
+          <canvas id="chart-error"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="forecast-summary" style="margin-top:12px; font-size:12px; color: var(--text-muted); line-height:1.6;"></div>
+  </div>
+
   <!-- Results table -->
   <div class="card" style="padding:0;">
     <div class="table-wrapper">
