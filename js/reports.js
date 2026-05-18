@@ -248,7 +248,7 @@ async function generateCertificate(r) {
   pdf.setFillColor(...(pass ? [34, 197, 94] : [239, 68, 68]));
   pdf.roundedRect(PX, y, W - PX * 2, 14, 2, 2, "F");
   pdf.setFontSize(13); pdf.setFont("helvetica", "bold"); pdf.setTextColor(255, 255, 255);
-  pdf.text(`OVERALL RESULT: ${pass ? "PASS ✓" : "FAIL ✗"}`, W / 2, y + 9.5, { align: "center" });
+  pdf.text(`OVERALL RESULT: ${pass ? "PASS" : "FAIL"}`, W / 2, y + 9.5, { align: "center" });
   y += 22;
 
   // ── Signatures ──
